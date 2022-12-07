@@ -19,6 +19,7 @@ class CameraCapture(object):
         self.status = True
         self.MAX_TIMEOUT_SECONDS = 20
         self.timeout = 0
+        self.forcequit = False
 
         
     def __str__(self):
@@ -38,8 +39,8 @@ class CameraCapture(object):
             # Handle Timeout countdown
             count = self.MAX_TIMEOUT_SECONDS -(time.time() - self.timeout)
             if time.time() - self.timeout >= self.MAX_TIMEOUT_SECONDS:
-                self.__del__()   
-            #
+                self.forcequit = True 
+            # Add text to camera feed
             font = cv2.FONT_HERSHEY_SIMPLEX
             self.cam = cv2.VideoCapture(self.index)
             image = self.frame.copy()
@@ -76,8 +77,8 @@ if __name__ == "__main__":
     while True:
         aframe = cam.get_frame()
         cv2.imshow(f"Camera {cam.index}", aframe)
-        
-        if cv2.waitKey(1) & 0xFF == ord('q'):
+
+        if cv2.waitKey(1) & 0xFF == ord('q') or cam.forcequit:
             del cam
             break
     cv2.destroyAllWindows()
