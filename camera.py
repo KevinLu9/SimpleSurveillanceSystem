@@ -1,34 +1,49 @@
-## Human Detection Surveillance Camera ##
-## Author: Kevin Lu ##
-
 import cv2
-import imutils
-import numpy as np
-import time
+import threading
 
-# Initialize Camera
-cam = cv2.VideoCapture(0)
-cam.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-cam.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
-frame_width = int(cam.get(3))
-frame_height = int(cam.get(4))
-print(f"Camera Resolution: {frame_width}x{frame_height}")
+class CameraCapture(object):
+    def __init__(self, index):
+        self.cam = cv2.VideoCapture(index)
+        (self.grabbed, self.frame) = self.cam.read()
+        self.fps = self.cam.get(cv2.CAP_PROP_FPS)
+        self.height = self.cam.get(cv2.CAP_PROP_FRAME_HEIGHT)
+        self.width = self.cam.get(cv2.CAP_PROP_FRAME_WIDTH)
+        self.index = index
+        threading.Thread(target=self.update, args=()).start()
 
-while True:    
-    ret, frame = cam.read()
-    timeStr = time.asctime().replace("  ", " ").replace(" ", "_").replace(":", "-")
-    frameDetails = f"TIME: {timeStr}"
-    lastSampleTime = time.time()
-    font = cv2.FONT_HERSHEY_SIMPLEX
-    cv2.putText(frame, frameDetails, (7, 70), font, 1, (255, 255, 255), 3, cv2.LINE_AA)   
-
-    # Show video in window
-    cv2.imshow('Camera', frame)
-
-    # Quit condition by key interrupt
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
+        
+    def __str__(self):
+        out = f"Camera: {self.index}, "
+        out += f"RES: {int(self.width)} x {int(self.height)}, "
+        out += f"FPS: {int(self.fps)}"
+        return out
 
 
-cam.release()
-cv2.destroyAllWindows()
+    def get_frame(self):
+        image = self.frame
+        return image
+        # Output as JPG for webapp video feed
+        #_, jpeg = cv2.imencode('.jpg', image)
+        #return jpeg.tobytes()
+
+
+    def update(self):
+        while True:
+            self.grabbed, self.frame = self.cam.read()
+ 
+
+    def __del__(self):
+        self.cam.release()
+
+
+if __name__ == "__main__":
+    cam = CameraCapture(0)
+    print(cam)
+    
+    while True:
+        cv2.imshow(f"Camera {cam.index}", cam.get_frame())
+        
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            del cam
+            break
+    cv2.destroyAllWindows()
