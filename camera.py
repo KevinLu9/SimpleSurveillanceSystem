@@ -14,18 +14,16 @@ class CameraCapture(object):
         self.fps = self.cam.get(cv2.CAP_PROP_FPS)
         self.height = self.cam.get(cv2.CAP_PROP_FRAME_HEIGHT)
         self.width = self.cam.get(cv2.CAP_PROP_FRAME_WIDTH)
-        print(np.array(self.frame).shape)
-        if self.frame is None:
-            self.frame = np.full((480, 640, 3), np.uint8(0))
-            print(self.frame.shape)
-            self.status = False
-            self.height = 480
-            self.width = 640
         self.index = index
         self.status = True
         self.MAX_TIMEOUT_SECONDS = 20
         self.timeout = time.time()
         self.forcequit = False
+        # Initialization when no camera is available
+        if self.frame is None:
+            self.frame = np.full((480, 640, 3), np.uint8(0))
+            self.height = 480
+            self.width = 640
         threading.Thread(target=self.update, args=()).start()
         
         
@@ -83,13 +81,18 @@ class CameraCapture(object):
 
 
 if __name__ == "__main__":
-    cam = CameraCapture(0)
-    print(cam)
+    camera_count = 4
+    cameras = []
+    cameras_forcequit = False
+    for i in range(camera_count):
+        cameras.append(CameraCapture(i))
+        print("Initialized " + str(cameras[i]))
     
     while True:
-        cv2.imshow(f"Camera {cam.index}", cam.get_frame())
-
-        if cv2.waitKey(1) & 0xFF == ord('q') or cam.forcequit:
-            del cam
+        cameras_forcequit = True
+        for i in range(camera_count):
+            cv2.imshow(f"Camera {cameras[i].index}", cameras[i].get_frame())
+            cameras_forcequit = cameras_forcequit and cameras[i].forcequit
+        if cv2.waitKey(1) & 0xFF == ord('q') or cameras_forcequit:
             break
     cv2.destroyAllWindows()
