@@ -1,4 +1,4 @@
-## Simple Surveillance System ##
+## Camera Class ##
 ## Author: Kevin Lu ##
 ## Start Date: 08/12/2022 ##
 
@@ -9,6 +9,7 @@ import numpy as np
 
 class CameraCapture(object):
     def __init__(self, index):
+        # Initialize camera variables
         self.cam = cv2.VideoCapture(index)
         (self.grabbed, self.frame) = self.cam.read()
         self.fps = self.cam.get(cv2.CAP_PROP_FPS)
@@ -37,6 +38,9 @@ class CameraCapture(object):
 
 
     def get_frame(self):
+    """
+    Gets the next frame from memory
+    """
         if self.status:
             image = self.frame
             return image
@@ -61,7 +65,11 @@ class CameraCapture(object):
                            cv2.LINE_AA)
 
 
+    
     def update(self):
+    """
+    Gets the next frame from the camera and writes it to memory
+    """
         while True:
             try:
                 g, f = self.cam.read()
@@ -70,36 +78,16 @@ class CameraCapture(object):
                     self.status = True
                 else:
                     raise exception("Camera Feed Error")
-            except:  # camera not plugged in and cam.read() returns exception
+            except:  # camera not plugged in so cam.read() returns exception
                 if self.status:
                     self.timeout = time.time()
                     self.status = False
             if self.forcequit:
                 break
-        print(f"Thread For Camera {self.index} Terminated\n")
-                
+        # Terminate camera
+        self.cam.release()
                 
                 
     def __del__(self):
         self.cam.release()
 
-
-if __name__ == "__main__":
-    camera_count = 2
-    cameras = []
-    cameras_forcequit = False
-    for i in range(camera_count):
-        cameras.append(CameraCapture(i))
-        print("Initialized " + str(cameras[i]))
-    
-    while True:
-        cameras_forcequit = True
-        for i in range(camera_count):
-            cv2.imshow(f"Camera {cameras[i].index}", cameras[i].get_frame())
-            cameras_forcequit = cameras_forcequit and cameras[i].forcequit
-        if cv2.waitKey(1) & 0xFF == ord('q') or cameras_forcequit:
-            for i in range(camera_count):
-                cameras[i].forcequit = True
-            break
-        
-    cv2.destroyAllWindows()
