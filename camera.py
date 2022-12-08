@@ -7,8 +7,13 @@ import time
 import threading
 import numpy as np
 
+
 class CameraCapture(object):
     def __init__(self, index):
+        """
+        Constructor for CameraCapture
+        input: Index - The index of the camera to be created
+        """
         # Initialize camera variables
         self.cam = cv2.VideoCapture(index)
         (self.grabbed, self.frame) = self.cam.read()
@@ -38,9 +43,9 @@ class CameraCapture(object):
 
 
     def get_frame(self):
-    """
-    Gets the next frame from memory
-    """
+        """
+        Gets the next frame from memory
+        """
         if self.status:
             image = self.frame
             return image
@@ -51,7 +56,7 @@ class CameraCapture(object):
         count = self.MAX_TIMEOUT_SECONDS -(time.time() - self.timeout)
         if time.time() - self.timeout >= self.MAX_TIMEOUT_SECONDS:
             self.forcequit = True 
-        # Add text to camera feed
+        # Add error text to camera feed
         font = cv2.FONT_HERSHEY_SIMPLEX
         self.cam = cv2.VideoCapture(self.index)
         image = self.frame.copy()
@@ -67,9 +72,9 @@ class CameraCapture(object):
 
     
     def update(self):
-    """
-    Gets the next frame from the camera and writes it to memory
-    """
+        """
+        Gets the next frame from the camera and writes it to memory
+        """
         while True:
             try:
                 g, f = self.cam.read()
