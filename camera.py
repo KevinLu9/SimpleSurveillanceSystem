@@ -24,7 +24,7 @@ class CameraCapture(object):
             self.frame = np.full((480, 640, 3), np.uint8(0))
             self.height = 480
             self.width = 640
-        threading.Thread(target=self.update, args=()).start()
+        self.rec = threading.Thread(target=self.update, args=()).start()
         
         
 
@@ -74,6 +74,10 @@ class CameraCapture(object):
                 if self.status:
                     self.timeout = time.time()
                     self.status = False
+            if self.forcequit:
+                break
+        print(f"Thread For Camera {self.index} Terminated\n")
+                
                 
                 
     def __del__(self):
@@ -81,7 +85,7 @@ class CameraCapture(object):
 
 
 if __name__ == "__main__":
-    camera_count = 4
+    camera_count = 2
     cameras = []
     cameras_forcequit = False
     for i in range(camera_count):
@@ -94,5 +98,8 @@ if __name__ == "__main__":
             cv2.imshow(f"Camera {cameras[i].index}", cameras[i].get_frame())
             cameras_forcequit = cameras_forcequit and cameras[i].forcequit
         if cv2.waitKey(1) & 0xFF == ord('q') or cameras_forcequit:
+            for i in range(camera_count):
+                cameras[i].forcequit = True
             break
+        
     cv2.destroyAllWindows()
